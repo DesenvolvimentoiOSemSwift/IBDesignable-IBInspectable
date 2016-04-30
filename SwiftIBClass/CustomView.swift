@@ -80,7 +80,7 @@ class CustomView: UIView {
         {
             
             CATransaction.begin()
-            var animation = CABasicAnimation(keyPath: "strokeEnd")
+            let animation = CABasicAnimation(keyPath: "strokeEnd")
             animation.duration = ((newPiePercentage/100) - (self.piePercentage/100)) * 3
             animation.fromValue = self.piePercentage / 100
             animation.toValue = newPiePercentage / 100
