@@ -4,7 +4,7 @@
 //
 //  Created by Mauricio Meirelles on 9/1/14.
 //  Copyright (c) 2014 BEPiD. All rights reserved.
-//
+//  Upgrading to Swift 5.3 by Henrique Matheus Alves Pereira on 02/01/2021
 
 import UIKit
 import QuartzCore
@@ -12,17 +12,17 @@ import QuartzCore
 @IBDesignable
 class CustomView: UIView {
 
-
     var backgroundLayer: CAShapeLayer!
     var lineWidth: Double = 0.0
     var pieOverLayer: CAShapeLayer!
     
     @IBInspectable var piePercentage:Double = 0.0
     {
-        willSet(newPiePercentage) { updatePiePercentage(newPiePercentage)}
-    }
+        willSet(newPiePercentage) { updatePiePercentage(newPiePercentage: newPiePercentage)}
+        }
     
-    @IBInspectable var pieColor:UIColor = UIColor(red: 49/255, green: 209/255, blue: 102/255, alpha: 1)
+    @IBInspectable
+    var pieColor:UIColor = UIColor(red: 49/255, green: 209/255, blue: 102/255, alpha: 1)
     
     override func layoutSubviews() {
         super.layoutSubviews()
@@ -34,83 +34,73 @@ class CustomView: UIView {
             layer.addSublayer(backgroundLayer)
             
             
-            let rect = CGRectInset(bounds, CGFloat(lineWidth / 2.0) ,CGFloat(lineWidth / 2.0))
-            let path = UIBezierPath(ovalInRect: rect)
+            let rect = bounds.insetBy(dx: CGFloat(lineWidth / 2.0) ,dy: CGFloat(lineWidth / 2.0))
+            let path = UIBezierPath(ovalIn: rect)
             
-            backgroundLayer.path = path.CGPath
+            backgroundLayer.path = path.cgPath
             
             backgroundLayer.fillColor = nil
             backgroundLayer.lineWidth = CGFloat(lineWidth)
-            backgroundLayer.strokeColor = UIColor(white: 0.5, alpha: 0.3).CGColor
+            backgroundLayer.strokeColor = UIColor(white: 0.5, alpha: 0.3).cgColor
             
         }
         
         backgroundLayer.frame = layer.bounds
-        
         
         if !(pieOverLayer != nil) {
             pieOverLayer = CAShapeLayer()
             layer.addSublayer(pieOverLayer)
             
             
-            let rect = CGRectInset(bounds, CGFloat(lineWidth / 2.0) ,CGFloat(lineWidth / 2.0))
-            let path = UIBezierPath(ovalInRect: rect)
+            let rect = bounds.insetBy(dx: CGFloat(lineWidth / 2.0) ,dy: CGFloat(lineWidth / 2.0))
+            let path = UIBezierPath(ovalIn: rect)
             
-            pieOverLayer.path = path.CGPath
+            pieOverLayer.path = path.cgPath
             
             pieOverLayer.fillColor = nil
             pieOverLayer.lineWidth = CGFloat(lineWidth)
-            pieOverLayer.strokeColor = pieColor.CGColor
-            pieOverLayer.anchorPoint = CGPointMake(0.5, 0.5)
+            pieOverLayer.strokeColor = pieColor.cgColor
+            pieOverLayer.anchorPoint = CGPoint(x: 0.5, y: 0.5)
             
-            pieOverLayer.transform = CATransform3DRotate(pieOverLayer.transform, CGFloat(-M_PI/2), 0, 0, 1)
-            
-            
+            pieOverLayer.transform = CATransform3DRotate(pieOverLayer.transform, CGFloat(-Double.pi/2), 0, 0, 1)
         }
         
         pieOverLayer.frame = layer.bounds
         
         updateLayerProperties()
-        
     }
+    
+    func updateLayerProperties() {
+            if (pieOverLayer != nil) {
+                self.pieOverLayer.strokeEnd = CGFloat( piePercentage / 100)
+            }
+        }
     
     func updatePiePercentage(newPiePercentage: Double)
-    {
-        if (pieOverLayer != nil)
         {
-            
-            CATransaction.begin()
-            let animation = CABasicAnimation(keyPath: "strokeEnd")
-            animation.duration = ((newPiePercentage/100) - (self.piePercentage/100)) * 3
-            animation.fromValue = self.piePercentage / 100
-            animation.toValue = newPiePercentage / 100
-            animation.timingFunction = CAMediaTimingFunction(name: kCAMediaTimingFunctionEaseInEaseOut)
-            
-            
-            CATransaction.setCompletionBlock({ () -> Void in
+            if (pieOverLayer != nil)
+            {
+                
                 CATransaction.begin()
-                CATransaction.setValue(kCFBooleanTrue,forKey:kCATransactionDisableActions)
-                self.pieOverLayer.strokeEnd = CGFloat(newPiePercentage / 100)
+                let animation = CABasicAnimation(keyPath: "strokeEnd")
+                animation.duration = ((newPiePercentage/100) - (self.piePercentage/100)) * 3
+                animation.fromValue = self.piePercentage / 100
+                animation.toValue = newPiePercentage / 100
+                animation.timingFunction = CAMediaTimingFunction(name: CAMediaTimingFunctionName.easeInEaseOut)
+                
+                
+                CATransaction.setCompletionBlock({ () -> Void in
+                    CATransaction.begin()
+                    CATransaction.setValue(kCFBooleanTrue,forKey:kCATransactionDisableActions)
+                    self.pieOverLayer.strokeEnd = CGFloat(newPiePercentage / 100)
+                    CATransaction.commit()
+                    
+                })
+                
+                self.pieOverLayer.add(animation, forKey: "animateStrokeEnd")
+                
                 CATransaction.commit()
                 
-            })
-            
-            self.pieOverLayer.addAnimation(animation, forKey: "animateStrokeEnd")
-            
-            CATransaction.commit()
-            
+            }
         }
-    }
-    
-    func updateLayerProperties()
-    {
-        if (pieOverLayer != nil)
-        {
-            self.pieOverLayer.strokeEnd = CGFloat( piePercentage / 100)
-            
-        }
-    }
-
-
-    
 }
